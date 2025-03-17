@@ -1,0 +1,12 @@
+streamlit
+beautifulsoup4
+requests
+transformers
+torch
+gtts
+pandas
+nltk
+fastapi
+uvicorn
+selenium
+webdriver-manager
