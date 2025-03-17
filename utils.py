@@ -7,11 +7,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 import streamlit as st
 
+
 def scrape_news(company_name):
     """Scrape news articles from Google News for the given company."""
+    driver = None
     try:
         # Configure Chrome options for Streamlit Cloud
         chrome_options = Options()
@@ -19,20 +23,46 @@ def scrape_news(company_name):
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument('--disable-gpu')
-        chrome_options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36')
+        chrome_options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36')
         
-        driver = webdriver.Chrome(options=chrome_options)
+        # Use ChromeDriverManager to download and get the driver path
+        driver_path = ChromeDriverManager().install()
+        driver_dir = os.path.dirname(driver_path)
+        
+        # Debug: List directory contents
+        st.write(f"DEBUG: Driver directory: {driver_dir}")
+        st.write(f"DEBUG: Directory contents: {os.listdir(driver_dir)}")
+        
+        # Look for the chromedriver executable
+        executable_path = os.path.join(driver_dir, "chromedriver")
+        
+        if not os.path.isfile(executable_path):
+            raise FileNotFoundError(f"chromedriver not found in {driver_dir}. Available files: {os.listdir(driver_dir)}")
+        
+        # Ensure it’s executable
+        if not os.access(executable_path, os.X_OK):
+            st.write(f"DEBUG: Setting executable permissions for {executable_path}")
+            os.chmod(executable_path, 0o755)  # Make it executable (rwxr-xr-x)
+        
+        # Verify permissions after setting
+        if not os.access(executable_path, os.X_OK):
+            raise PermissionError(f"Could not make {executable_path} executable. Check system permissions.")
+        
+        st.write(f"DEBUG: Using ChromeDriver at {executable_path}")
+        service = Service(executable_path=executable_path)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        
         url = f"https://news.google.com/search?q={company_name}"
         st.write(f"DEBUG: Fetching URL: {url}")
         driver.get(url)
 
         # Wait for articles to load
-        WebDriverWait(driver, 20).until(
+        WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.TAG_NAME, 'article'))
         )
-        time.sleep(3)  # Buffer for dynamic content
+        time.sleep(5)  # Buffer for dynamic content
         
-        # Parse page source
+        # Parse page source with BeautifulSoup
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         articles = []
         article_tags = soup.find_all('article')
@@ -56,9 +86,9 @@ def scrape_news(company_name):
                 link = "https://news.google.com" + title_element['href'].lstrip('.')
                 summary = summary_element.get_text(strip=True) if summary_element and summary_element.get_text(strip=True) else "No summary available"
                 
-                # Topic detection
-                summary_lower = summary.lower()
-                topics = [topic for topic, keywords in topic_keywords.items() if any(kw in summary_lower for kw in keywords)] or ["General"]
+                # Topic detection using both title and summary
+                text_to_analyze = (title + " " + summary).lower()
+                topics = [topic for topic, keywords in topic_keywords.items() if any(kw in text_to_analyze for kw in keywords)] or ["General"]
                 
                 sentiment = analyze_sentiment(summary)
                 articles.append({
@@ -74,21 +104,23 @@ def scrape_news(company_name):
         if not articles:
             st.write(f"DEBUG: No articles processed for '{company_name}'")
 
-        driver.quit()
         return articles
 
     except Exception as e:
         st.error(f"Error fetching news: {str(e)}")
         return []
+    finally:
+        if driver:
+            driver.quit()
 
+# Rest of the functions remain unchanged
 def analyze_sentiment(text):
     """Analyze sentiment of the given text using a pre-trained model."""
     global sentiment_pipeline
     if 'sentiment_pipeline' not in globals():
-        # Lazy load to avoid PyTorch/Streamlit conflict
         sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
     result = sentiment_pipeline(text)[0]
-    return result['label']
+    return "Positive" if result['label'] == "POSITIVE" else "Negative"
 
 def text_to_speech(text, language='hi'):
     """Convert text to speech in the specified language (default: Hindi)."""
@@ -98,28 +130,30 @@ def text_to_speech(text, language='hi'):
         tts.save(audio_file)
         return audio_file
     except Exception as e:
-        raise Exception(f"TTS failed: {str(e)}")
+        st.error(f"TTS failed: {str(e)}")
+        return None
 
 def comparative_analysis(articles):
     """Perform comparative analysis on the list of articles."""
     sentiment_distribution = {'Positive': 0, 'Negative': 0, 'Neutral': 0}
     for article in articles:
         sentiment = article['sentiment']
-        if sentiment == 'POSITIVE':
+        if sentiment == 'Positive':
             sentiment_distribution['Positive'] += 1
-        elif sentiment == 'NEGATIVE':
+        elif sentiment == 'Negative':
             sentiment_distribution['Negative'] += 1
         else:
             sentiment_distribution['Neutral'] += 1
    
+    all_topics = [topic for article in articles for topic in article['topics']]
+    common_topics = list(set.intersection(*[set(article['topics']) for article in articles])) if articles else ["Technology"]
     topic_overlap = {
-        "Common Topics": ["Technology"],
-        "Unique Topics in Article 1": ["AI", "Mobile"],
-        "Unique Topics in Article 2": ["Partnerships", "Hardware"]
+        "Common Topics": common_topics,
+        "Unique Topics in Article 1": list(set(articles[0]['topics']) - set(common_topics)) if articles else ["AI", "Mobile"],
+        "Unique Topics in Article 2": list(set(articles[1]['topics']) - set(common_topics)) if len(articles) > 1 else ["Partnerships", "Hardware"]
     }
     return {
         "Sentiment Distribution": sentiment_distribution,
-       
         "Topic Overlap": topic_overlap
     }
 

@@ -50,4 +50,4 @@ if st.button("Fetch News"):
 
 # Footer
 st.markdown("---")
-st.write("Built with ❤️ by Ujjwal Sinha ")
+st.write("Built with ❤️ by Ujjwal Sinha")
