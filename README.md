@@ -15,7 +15,7 @@ This project is a News Summarization and Text-to-Speech (TTS) application that a
 - 🌗 **Light/Dark Mode Toggle**
 - 🧠 **Company Logo Fetching** using Clearbit API
 - 📊 **Pie & Bar Charts** for sentiment visualization using Plotly
-- 📄 **Structured JSON Output** for summarized data
+- 📄 **Structured JSON Output** for summarized data , Translated Summary Text .
 
 ## Technologies Used
 

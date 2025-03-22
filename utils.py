@@ -107,21 +107,19 @@ def analyze_sentiment(text):
 # Convert text to speech (Hindi by default)
 def text_to_speech(text, language='hi'):
     try:
-        # Translate if the selected language is not English
         if language != 'en':
             translator = Translator()
             translated = translator.translate(text, dest=language).text
         else:
-            translated = text  # English text, no need to translate
+            translated = text
 
-        # Generate TTS
         tts = gTTS(text=translated, lang=language)
         tts.save("output.mp3")
-        return "output.mp3"
+        return "output.mp3", translated
 
     except Exception as e:
         print(f"❌ TTS failed: {e}")
-        return ""
+        return "", ""
 
 # Analyze overall sentiment and topics
 def comparative_analysis(articles):

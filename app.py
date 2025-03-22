@@ -91,13 +91,13 @@ if st.button("🚀 Fetch News"):
             else:
                 st.info("⚠️ No sentiment data available to visualize.")
 
-            # --- Audio Summary ---
+            # --- Audio Summary + Translated Text ---
             st.markdown(f"### 🎧 Audio Summary in {selected_lang_label}")
             summary_text = " ".join([article['summary'] for article in articles if article.get('summary')])
 
             if summary_text.strip():
                 try:
-                    audio_file = text_to_speech(summary_text, language=lang_code)
+                    audio_file, translated_text = text_to_speech(summary_text, language=lang_code)
                     if os.path.exists(audio_file):
                         st.audio(audio_file, format="audio/mp3")
                         with open(audio_file, "rb") as f:
@@ -105,6 +105,13 @@ if st.button("🚀 Fetch News"):
                         if st.button("🗑️ Clear Audio"):
                             os.remove(audio_file)
                             st.success("Audio file cleared successfully.")
+
+                        # Show translated summary
+                        st.markdown("#### 📝 Translated Summary Text")
+                        st.markdown(
+                            f"<div style='background-color: black; padding: 15px; border-radius: 10px;'>{translated_text}</div>",
+                            unsafe_allow_html=True
+                        )
                 except Exception as e:
                     st.error(f"Error generating audio: {str(e)}")
             else:
