@@ -42,7 +42,7 @@ This project is a News Summarization and Text-to-Speech (TTS) application that a
    cd News-Summarization-and-Text-to-Speech-Application
    ```
 
-2. **Set up a virtual environment**:  (optional but recommended):
+2. **Set up a virtual environment**:
    ```bash
   conda create -p venv python==3.12
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
