@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from gtts import gTTS
 from transformers import pipeline
+from googletrans import Translator
 import os
 
 # Setup sentiment analysis pipeline (specify model to avoid warning)
@@ -105,9 +106,18 @@ def analyze_sentiment(text):
 
 # Convert text to speech (Hindi by default)
 def text_to_speech(text, language='hi'):
-    tts = gTTS(text=text, lang=language)
-    tts.save("output.mp3")
-    return "output.mp3"
+    try:
+        if language == 'hi':
+            translator = Translator()
+            translated = translator.translate(text, dest='hi').text
+            tts = gTTS(text=translated, lang='hi')
+        else:
+            tts = gTTS(text=text, lang='en')
+        tts.save("output.mp3")
+        return "output.mp3"
+    except Exception as e:
+        print(f"❌ TTS failed: {e}")
+        return ""
 
 # Analyze overall sentiment and topics
 def comparative_analysis(articles):

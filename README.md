@@ -6,11 +6,16 @@ This project is a News Summarization and Text-to-Speech (TTS) application that a
 
 ## Features
 
-- **News Scraping**: Fetches the latest news articles for a given company from Bing News.
-- **Sentiment Analysis**: Analyzes the sentiment of each news article using a pre-trained NLP model.
-- **Comparative Analysis**: Provides a comparative analysis of the sentiment distribution and topic overlap across articles.
-- **Text-to-Speech**: Converts the summarized news text into an audio file in Hindi.
-- **Interactive UI**: A user-friendly Streamlit interface for easy interaction with the application.
+- 🔍**News Scraping**: Fetches the latest news articles for a given company from Bing News.
+- 📈**Sentiment Analysis**: Analyzes the sentiment of each news article using a pre-trained NLP model.
+- 📈**Comparative Analysis**: Provides a comparative analysis of the sentiment distribution and topic overlap across articles.
+- 🗣️**Text-to-Speech**: Converts the summarized news text into an audio file in Hindi And English.
+- ✨**Interactive UI**: A user-friendly Streamlit interface for easy interaction with the application.
+- 🔁 **Audio Controls** (Play, Download, Clear)
+- 🌗 **Light/Dark Mode Toggle**
+- 🧠 **Company Logo Fetching** using Clearbit API
+- 📊 **Pie & Bar Charts** for sentiment visualization using Plotly
+- 📄 **Structured JSON Output** for summarized data
 
 ## Technologies Used
 
@@ -22,13 +27,19 @@ This project is a News Summarization and Text-to-Speech (TTS) application that a
 - **gTTS (Google Text-to-Speech)**: A Python library used to convert text to speech.
 - **Pandas**: Used for data manipulation and analysis.
 - **NLTK**: A natural language processing library used for text processing.
+- **Plotly**: Interactive sentiment charts .
+- **Clearbit API**:Logo fetching by domain.
+- **googletrans**: Python library for translating text using Google Translate unofficial API.
+
 - **Selenium**: Used for web scraping in more complex scenarios (not heavily used in this project).
+
 
 ## Installation
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Ujjwal-sinha/News-Summarization-and-Text-to-Speech-Application.git
+  git clone https://github.com/Ujjwal-sinha/News-Summarization-and-Text-to-Speech-Application.git
+  cd News-Summarization-and-Text-to-Speech-Application
 
   
    ```

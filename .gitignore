@@ -1,0 +1,34 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+venv/
+env/
+.venv/
+*.env
+*.egg-info/
+.Python
+
+# Output audio file
+output.mp3
+*.mp3
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Streamlit cloud secrets (if used)
+.streamlit/secrets.toml
