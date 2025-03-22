@@ -13,12 +13,19 @@ from utils import (
 # Page config
 st.set_page_config(page_title="News Summarizer & TTS", page_icon="📰", layout="wide")
 
-# Sidebar language selector
+# --- Sidebar Language Selector ---
+language_options = {
+    "Hindi 🇮🇳": "hi",
+    "English 🇬🇧": "en",
+    "Bengali 🇧🇩": "bn",
+    "Spanish 🇪🇸": "es",
+    "Tamil 🇮🇳": "ta"
+}
 st.sidebar.markdown("## 🗣️ Audio Language")
-selected_lang = st.sidebar.selectbox("Choose TTS Language", ["Hindi", "English"])
-lang_code = "hi" if selected_lang == "Hindi" else "en"
+selected_lang_label = st.sidebar.selectbox("Choose TTS Language", list(language_options.keys()))
+lang_code = language_options[selected_lang_label]
 
-# Light/Dark mode toggle
+# --- Light/Dark Mode Toggle ---
 mode = st.sidebar.radio("🌓 Theme", ["Light", "Dark"])
 if mode == "Dark":
     st.markdown(
@@ -26,12 +33,12 @@ if mode == "Dark":
         unsafe_allow_html=True
     )
 
-# Title
-st.markdown("<h1 style='text-align: center;'>📰 News Summarizer & Hindi TTS</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 18px;'>Get the latest news, analysis, and listen to summaries</p>", unsafe_allow_html=True)
+# --- Title ---
+st.markdown("<h1 style='text-align: center;'>📰 News Summarizer & TTS</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 18px;'>Get the latest news, analysis, and listen to summaries in multiple languages</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Input section
+# --- Input Section ---
 with st.container():
     st.markdown("### 🔍 Enter Company Name")
     col1, col2 = st.columns([3, 1])
@@ -47,7 +54,7 @@ with st.container():
             except:
                 pass
 
-# Fetch News Button
+# --- Fetch News ---
 if st.button("🚀 Fetch News"):
     if not company_name.strip():
         st.error("⚠️ Please enter a valid company name.")
@@ -58,7 +65,7 @@ if st.button("🚀 Fetch News"):
         if not articles:
             st.warning("❌ No articles found.")
         else:
-            # Display article cards
+            # --- Display Article Cards ---
             st.markdown("### 🗞️ News Articles")
             for article in articles:
                 st.markdown(f"**🔹 [{article['title']}]({article['link']})**")
@@ -66,7 +73,7 @@ if st.button("🚀 Fetch News"):
                 st.markdown(f"`Topics:` {', '.join(article['topics'])} | `Sentiment:` {article['sentiment']}")
                 st.markdown("---")
 
-            # Comparative sentiment analysis
+            # --- Sentiment Analysis Visualization ---
             result = comparative_analysis(articles)
             sentiment_data = result.get("Sentiment Distribution", {})
 
@@ -84,8 +91,8 @@ if st.button("🚀 Fetch News"):
             else:
                 st.info("⚠️ No sentiment data available to visualize.")
 
-            # Audio Summary
-            st.markdown(f"### 🎧 Audio Summary in {selected_lang}")
+            # --- Audio Summary ---
+            st.markdown(f"### 🎧 Audio Summary in {selected_lang_label}")
             summary_text = " ".join([article['summary'] for article in articles if article.get('summary')])
 
             if summary_text.strip():
@@ -103,7 +110,7 @@ if st.button("🚀 Fetch News"):
             else:
                 st.warning("⚠️ No valid summaries found for TTS.")
 
-# Footer
+# --- Footer ---
 st.markdown("---")
 st.markdown(
     "<p style='text-align: center;'>Built with ❤️ by <b>Ujjwal Sinha</b> • "

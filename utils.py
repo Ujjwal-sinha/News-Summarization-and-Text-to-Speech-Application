@@ -107,14 +107,18 @@ def analyze_sentiment(text):
 # Convert text to speech (Hindi by default)
 def text_to_speech(text, language='hi'):
     try:
-        if language == 'hi':
+        # Translate if the selected language is not English
+        if language != 'en':
             translator = Translator()
-            translated = translator.translate(text, dest='hi').text
-            tts = gTTS(text=translated, lang='hi')
+            translated = translator.translate(text, dest=language).text
         else:
-            tts = gTTS(text=text, lang='en')
+            translated = text  # English text, no need to translate
+
+        # Generate TTS
+        tts = gTTS(text=translated, lang=language)
         tts.save("output.mp3")
         return "output.mp3"
+
     except Exception as e:
         print(f"❌ TTS failed: {e}")
         return ""

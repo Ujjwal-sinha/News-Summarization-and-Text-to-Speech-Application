@@ -9,7 +9,7 @@ This project is a News Summarization and Text-to-Speech (TTS) application that a
 - 🔍**News Scraping**: Fetches the latest news articles for a given company from Bing News.
 - 📈**Sentiment Analysis**: Analyzes the sentiment of each news article using a pre-trained NLP model.
 - 📈**Comparative Analysis**: Provides a comparative analysis of the sentiment distribution and topic overlap across articles.
-- 🗣️**Text-to-Speech**: Converts the summarized news text into an audio file in Hindi And English.
+- 🗣️**Text-to-Speech**: Converts the summarized news text into an audio file in Hindi, English, Bengali, Spanish , Tamil.
 - ✨**Interactive UI**: A user-friendly Streamlit interface for easy interaction with the application.
 - 🔁 **Audio Controls** (Play, Download, Clear)
 - 🌗 **Light/Dark Mode Toggle**
@@ -42,7 +42,7 @@ This project is a News Summarization and Text-to-Speech (TTS) application that a
    cd News-Summarization-and-Text-to-Speech-Application
    ```
 
-2. **Set up a virtual environment**:
+2. **Set up a virtual environment  (optional but recommended)**: 
    ```bash
   conda create -p venv python==3.12
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
