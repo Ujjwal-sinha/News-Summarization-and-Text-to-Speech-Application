@@ -3,15 +3,22 @@ import os
 import pandas as pd
 import plotly.express as px
 import requests
-
 from utils import (
     scrape_news,
     text_to_speech,
-    comparative_analysis
+    comparative_analysis,
+    generate_news_reel
 )
+from collections import Counter
 
 # Page config
 st.set_page_config(page_title="News Summarizer & TTS", page_icon="📰", layout="wide")
+
+# Initialize session state
+if 'articles' not in st.session_state:
+    st.session_state.articles = []
+if 'translated_text' not in st.session_state:
+    st.session_state.translated_text = ""
 
 # --- Sidebar Language Selector ---
 language_options = {
@@ -49,10 +56,11 @@ with st.container():
             domain = company_name.lower().replace(" ", "") + ".com"
             logo_url = f"https://logo.clearbit.com/{domain}"
             try:
-                if requests.get(logo_url).status_code == 200:
+                response = requests.get(logo_url, timeout=5)
+                if response.status_code == 200:
                     st.image(logo_url, width=64, caption="Company Logo")
-            except:
-                pass
+            except requests.RequestException:
+                st.write("Logo not available")
 
 # --- Fetch News ---
 if st.button("🚀 Fetch News"):
@@ -65,7 +73,9 @@ if st.button("🚀 Fetch News"):
         if not articles:
             st.warning("❌ No articles found.")
         else:
-            # --- Display Article Cards ---
+            st.session_state.articles = articles  # ✅ Store in session
+
+            # --- Display Articles ---
             st.markdown("### 🗞️ News Articles")
             for article in articles:
                 st.markdown(f"**🔹 [{article['title']}]({article['link']})**")
@@ -73,14 +83,13 @@ if st.button("🚀 Fetch News"):
                 st.markdown(f"`Topics:` {', '.join(article['topics'])} | `Sentiment:` {article['sentiment']}")
                 st.markdown("---")
 
-            # --- Sentiment Analysis Visualization ---
+            # --- Sentiment Analysis ---
             result = comparative_analysis(articles)
             sentiment_data = result.get("Sentiment Distribution", {})
 
             if sentiment_data:
                 st.markdown("### 📊 Sentiment Distribution")
                 df = pd.DataFrame(list(sentiment_data.items()), columns=["Sentiment", "Count"])
-
                 col1, col2 = st.columns(2)
                 with col1:
                     pie = px.pie(df, names="Sentiment", values="Count", title="Pie Chart")
@@ -91,31 +100,73 @@ if st.button("🚀 Fetch News"):
             else:
                 st.info("⚠️ No sentiment data available to visualize.")
 
-            # --- Audio Summary + Translated Text ---
-            st.markdown(f"### 🎧 Audio Summary in {selected_lang_label}")
-            summary_text = " ".join([article['summary'] for article in articles if article.get('summary')])
+            # --- Topic-wise Breakdown ---
+            all_topics = []
+            for article in st.session_state.articles:
+                all_topics.extend(article.get("topics", []))
 
+            topic_counts = Counter(all_topics)
+
+            if topic_counts:
+                st.markdown("### 🧠 Topic-wise Breakdown")
+                df_topics = pd.DataFrame(topic_counts.items(), columns=["Topic", "Count"])
+
+                topic_bar = px.bar(
+                    df_topics.sort_values("Count", ascending=False),
+                    x="Topic",
+                    y="Count",
+                    title="Frequency of Topics Across News Articles",
+                    color="Topic",
+                    color_discrete_sequence=px.colors.qualitative.Safe
+                )
+
+                st.plotly_chart(topic_bar, use_container_width=True)
+            else:
+                st.info("⚠️ No topics available to visualize.")
+
+            # --- Audio Summary + Translation ---
+            summary_text = " ".join([article['summary'] for article in articles if article.get('summary')])
             if summary_text.strip():
-                try:
-                    audio_file, translated_text = text_to_speech(summary_text, language=lang_code)
-                    if os.path.exists(audio_file):
-                        st.audio(audio_file, format="audio/mp3")
-                        with open(audio_file, "rb") as f:
-                            st.download_button("⬇️ Download Audio", f, "summary.mp3", "audio/mp3")
-                        if st.button("🗑️ Clear Audio"):
+                audio_file, translated_text = text_to_speech(summary_text, language=lang_code)
+                st.session_state.translated_text = translated_text  # ✅ Store in session
+
+                if os.path.exists(audio_file):
+                    st.markdown(f"### 🎧 Audio Summary in {selected_lang_label}")
+                    st.audio(audio_file, format="audio/mp3")
+                    with open(audio_file, "rb") as f:
+                        st.download_button("⬇️ Download Audio", f, "summary.mp3", "audio/mp3")
+                    if st.button("🗑️ Clear Audio"):
+                        try:
                             os.remove(audio_file)
                             st.success("Audio file cleared successfully.")
+                        except OSError as e:
+                            st.error(f"Failed to remove audio file: {e}")
 
-                        # Show translated summary
-                        st.markdown("#### 📝 Translated Summary Text")
-                        st.markdown(
-                            f"<div style='background-color: black; padding: 15px; border-radius: 10px;'>{translated_text}</div>",
-                            unsafe_allow_html=True
-                        )
-                except Exception as e:
-                    st.error(f"Error generating audio: {str(e)}")
-            else:
-                st.warning("⚠️ No valid summaries found for TTS.")
+                    # Show Translated Summary
+                    st.markdown("#### 📝 Translated Summary Text")
+                    st.markdown(
+                        f"<div style='background-color: black; padding: 15px; border-radius: 10px;'>{translated_text}</div>",
+                        unsafe_allow_html=True
+                    )
+
+# --- 🎬 News Reel Button Section (separate from fetch block) ---
+if st.session_state.translated_text:
+    st.markdown("### 🎥 Generate Video Summary Reel")
+    if st.button("🎬 Create News Reel"):
+        with st.spinner("Generating video reel..."):
+            summary_text = " ".join([article['summary'] for article in st.session_state.articles if article.get('summary')])
+            video_path = generate_news_reel(
+                text=summary_text,
+                language=lang_code,
+                output_file="news_reel.mp4"
+            )
+
+        if os.path.exists(video_path):
+            st.video(video_path)
+            with open(video_path, "rb") as f:
+                st.download_button("⬇️ Download News Reel", f, "news_reel.mp4", mime="video/mp4")
+        else:
+            st.error("❌ Failed to generate news reel.")
 
 # --- Footer ---
 st.markdown("---")
