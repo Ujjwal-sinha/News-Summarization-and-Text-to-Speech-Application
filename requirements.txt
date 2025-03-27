@@ -12,6 +12,8 @@ selenium==4.18.1
 webdriver-manager
 plotly==5.24.1
 googletrans==4.0.0-rc1
-ffmpeg
+ffmpeg-python  # Ensure ffmpeg support
+imageio[ffmpeg]  # Required for video processing
+
 apscheduler
 bs4

@@ -191,7 +191,8 @@ def generate_news_reel(text, language="hi", output_file="news_reel.mp4", font_si
         logging.info(f"✅ News reel created: {output_file}")
         return output_file
 
-    except ffmpeg.Error as e:
+    except Exception as e:
+
         logging.error("❌ FFmpeg error while generating video:")
         logging.error(f"STDOUT:\n{e.stdout.decode(errors='ignore') if e.stdout else '(no stdout)'}")
         logging.error(f"STDERR:\n{e.stderr.decode(errors='ignore') if e.stderr else '(no stderr)'}")
