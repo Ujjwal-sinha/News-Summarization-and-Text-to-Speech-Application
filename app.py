@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-os.system("apt-get update && apt-get install -y ffmpeg")
 import pandas as pd
 import plotly.express as px
 import requests
