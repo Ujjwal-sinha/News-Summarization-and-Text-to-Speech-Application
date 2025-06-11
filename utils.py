@@ -121,7 +121,7 @@ def get_default_font_path():
     else:
         return "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf"
 
-def generate_news_reel(text, language="hi", output_file="news_reel.mp4", font_size=30, bg_color="black"):
+def generate_news_reel(text, language="hi", output_file="news_reel.mp4", font_size=30, bg_color="black", image_path=None):
     audio_path = None
     video_no_audio_path = None
     try:
@@ -158,21 +158,30 @@ def generate_news_reel(text, language="hi", output_file="news_reel.mp4", font_si
             start = idx * duration_per_line
             end = start + duration_per_line
             drawtext_filters.append(
-                f"drawtext=fontfile='{font_path}':text='{safe_line}':fontcolor=white:"
-                f"fontsize={font_size}:x=(w-text_w)/2:y=h-100:enable='between(t,{start:.2f},{end:.2f})'"
+                f"drawtext=fontfile='{font_path}':text='{safe_line}':fontcolor=white:fontsize={font_size}:x=(w-text_w)/2:y=h-100:enable='between(t,{start:.2f},{end:.2f})'"
             )
-
         full_filter = ",".join(drawtext_filters)
         video_no_audio_path = tempfile.mktemp(suffix=".mp4")
 
-        # Create subtitle video
-        (
-            ffmpeg
-            .input(f"color={bg_color}:s=720x1280:r=30", f="lavfi", t=audio_duration)
-            .output(video_no_audio_path, vf=full_filter, vcodec="libx264", pix_fmt="yuv420p")
-            .overwrite_output()
-            .run(capture_stdout=True, capture_stderr=True)
-        )
+        # --- Add background image or animation if provided ---
+        if image_path and os.path.exists(image_path):
+            # Use the image as a background, loop it for the duration
+            (
+                ffmpeg
+                .input(image_path, loop=1, t=audio_duration)
+                .output(video_no_audio_path, vf=full_filter, vcodec="libx264", pix_fmt="yuv420p", r=30)
+                .overwrite_output()
+                .run(capture_stdout=True, capture_stderr=True)
+            )
+        else:
+            # Use a color background with a simple fade animation
+            (
+                ffmpeg
+                .input(f"color={bg_color}:s=720x1280:r=30", f="lavfi", t=audio_duration)
+                .output(video_no_audio_path, vf=f"fade=in:0:30,{full_filter}", vcodec="libx264", pix_fmt="yuv420p")
+                .overwrite_output()
+                .run(capture_stdout=True, capture_stderr=True)
+            )
 
         # Combine with audio
         (
@@ -192,10 +201,9 @@ def generate_news_reel(text, language="hi", output_file="news_reel.mp4", font_si
         return output_file
 
     except Exception as e:
-
         logging.error("❌ FFmpeg error while generating video:")
-        logging.error(f"STDOUT:\n{e.stdout.decode(errors='ignore') if e.stdout else '(no stdout)'}")
-        logging.error(f"STDERR:\n{e.stderr.decode(errors='ignore') if e.stderr else '(no stderr)'}")
+        logging.error(f"STDOUT:\n{e.stdout.decode(errors='ignore') if hasattr(e, 'stdout') and e.stdout else '(no stdout)'}")
+        logging.error(f"STDERR:\n{e.stderr.decode(errors='ignore') if hasattr(e, 'stderr') and e.stderr else '(no stderr)'}")
         return ""
     except Exception as e:
         logging.error(f"❌ News reel generation failed: {str(e)}")
