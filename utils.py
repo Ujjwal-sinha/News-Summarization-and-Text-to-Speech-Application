@@ -251,6 +251,11 @@ def generate_final_output(company_name, articles, comparative_analysis_result):
         "Audio": "[Play Hindi Speech]"
     }
 
+def generate_article_summary(articles):
+    """Generate a concise summary of multiple articles."""
+    # Fallback to basic summary only, no Groq LLM
+    return " ".join([a['summary'] for a in articles[:3]])
+
 if __name__ == "__main__":
     company = "Google"
     articles = scrape_news(company)

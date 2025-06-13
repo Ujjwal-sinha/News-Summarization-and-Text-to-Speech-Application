@@ -1,5 +1,6 @@
 streamlit==1.32.0
 beautifulsoup4==4.12.3
+bs4
 requests==2.31.0
 transformers==4.38.2
 torch==2.2.2
@@ -12,7 +13,14 @@ selenium==4.18.1
 webdriver-manager
 plotly==5.24.1
 googletrans==4.0.0-rc1
-ffmpeg-python  # Ensure ffmpeg support
-imageio[ffmpeg]  # Required for video processing
+ffmpeg-python
+imageio[ffmpeg]
 apscheduler
-bs4
+
+
+
+
+# Compatibility-safe HTTP libraries
+
+httpx==0.13.3  # Pinned for googletrans compatibility
+httpcore==0.9.1  # Pinned for httpx 0.13.3 compatibility

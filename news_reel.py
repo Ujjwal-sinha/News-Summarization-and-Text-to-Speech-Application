@@ -54,7 +54,7 @@ if 'reel_articles' in st.session_state and st.session_state.reel_articles:
     if category != "All":
         filtered_articles = [a for a in st.session_state.reel_articles if category.lower() in [t.lower() for t in a.get('topics', [])]]
     st.markdown("### 📰 Latest News Highlights")
-    for article in filtered_articles[:10]:
+    for article in filtered_articles:  # Removed the [:10] limit
         st.markdown(f"""
         <div class='reel-card'>
             <a href='{article['link']}' target='_blank' style='text-decoration: none; color: #232526;'><h3 style='margin-bottom: 8px;'>{article['title']}</h3></a>
@@ -62,6 +62,8 @@ if 'reel_articles' in st.session_state and st.session_state.reel_articles:
             <div style='color: #888; font-size: 14px;'>Topics: {', '.join(article['topics'])} | Sentiment: {article['sentiment']}</div>
         </div>
         """, unsafe_allow_html=True)
+
+    st.markdown(f"<div style='text-align:center; color:#888;'>Reels 1 to {len(filtered_articles)}</div>", unsafe_allow_html=True)
 
     # --- Generate and Show News Reel Video ---
     if st.button("🎬 Generate News Reel Video"):
